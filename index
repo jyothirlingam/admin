@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>వీరశైవ సూపర్ అడ్మిన్ ప్యానెల్</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@400;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #090296; --secondary: #04b03a; --danger: #ff4757; --bg: #f0f2f5; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Noto Sans Telugu', sans-serif; }
+        body { background: var(--bg); min-height: 100vh; }
+        
+        /* LOGIN STYLES */
+        #adminLoginScreen { display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--primary); padding: 20px; }
+        .login-card { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.2); width: 100%; max-width: 400px; text-align: center; }
+        .login-card input { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; margin-top: 8px; margin-bottom: 20px; outline: none; }
+
+        /* DASHBOARD STYLES */
+        #adminMainContent { padding: 20px; display: none; }
+        .header { background: var(--primary); color: white; padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .stat-card h2 { color: var(--primary); font-size: 30px; }
+
+        .notice-box { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid gold; }
+        .notice-box input { width: 70%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-right: 10px; font-size: 14px; outline: none; }
+
+        .table-container { background: white; padding: 20px; border-radius: 15px; overflow-x: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1100px; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; color: var(--primary); border-bottom: 2px solid #eee; }
+        td { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; font-size: 14px; }
+        tr:hover { background: #f9f9f9; }
+
+        .btn { padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-export { background: var(--secondary); color: white; }
+        .btn-notice { background: var(--primary); color: white; }
+        .btn-logout { background: #ff4757; color: white; margin-left: 10px; }
+        .btn-edit { background: none; color: var(--primary); font-size: 18px; border: none; cursor: pointer; margin-right: 10px; }
+        .btn-delete { color: var(--danger); background: none; font-size: 18px; border: none; cursor: pointer; }
+        
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-approved { background: #d4edda; color: #155724; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(5px); }
+        .modal-box { background: white; padding: 25px; border-radius: 25px; width: 95%; max-width: 800px; max-height: 90vh; overflow-y: auto; text-align: center; border-top: 8px solid var(--secondary); }
+        .edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; text-align: left; }
+        .edit-field label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; font-weight: bold; }
+        .edit-field input, .edit-field select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        .toggle-pass { position: absolute; right: 10px; top: 28px; cursor: pointer; color: #999; }
+    </style>
+</head>
+<body>
+
+    <div id="adminLoginScreen">
+        <div class="login-card">
+            <i class="fa fa-user-shield" style="font-size: 55px; color: var(--primary); margin-bottom: 15px;"></i>
+            <h2 style="color: var(--primary); margin-bottom: 25px;">అడ్మిన్ లాగిన్</h2>
+            <div style="text-align: left;">
+                <label>యూజర్ నేమ్</label>
+                <input type="text" id="adminUser" placeholder="Admin Name">
+                <label>పాస్ వర్డ్</label>
+                <input type="password" id="adminPass" placeholder="••••••••">
+            </div>
+            <button class="btn btn-notice" style="width: 100%; padding: 15px;" onclick="checkAdminLogin()">ప్రవేశించు</button>
+            <p id="loginError" style="color: var(--danger); margin-top: 15px; display: none; font-size: 14px;">వివరాలు తప్పు! మళ్ళీ ప్రయత్నించండి.</p>
+        </div>
+    </div>
+
+    <div id="adminMainContent">
+        <div class="header">
+            <h1><i class="fa fa-gem"></i> వీరశైవం సూపర్ అడ్మిన్</h1>
+            <div>
+                <button class="btn btn-export" onclick="exportToExcel()"><i class="fa fa-file-excel"></i> Export Excel</button>
+                <button class="btn btn-logout" onclick="adminLogout()"><i class="fa fa-power-off"></i> Logout</button>
+            </div>
+        </div>
+
+        <div class="notice-box">
+            <h3><i class="fa fa-bullhorn"></i> నోటీసు బోర్డు అప్‌డేట్</h3>
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-top:10px;">
+                <input type="text" id="newNotice" placeholder="నోటీసు బోర్డు సమాచారం...">
+                <button class="btn btn-notice" onclick="updateNotice()">Update Notice</button>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card"><h3>మొత్తం సభ్యులు</h3><h2 id="totalCount">0</h2></div>
+            <div class="stat-card"><h3>నేడు చేరినవారు</h3><h2 id="todayCount">0</h2></div>
+            <div class="stat-card"><h3>నంబర్ రిక్వెస్ట్‌లు</h3><h2 id="reqCount">0</h2></div>
+        </div>
+
+        <div class="table-container" style="border-left: 5px solid var(--primary);">
+            <h3 style="margin-bottom: 15px; color: var(--primary);"><i class="fa fa-phone-volume"></i> నంబర్ రిక్వెస్ట్ మేనేజ్మెంట్</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>నుండి (From)</th>
+                        <th>ఎవరికి (To)</th>
+                        <th>తేదీ & సమయం</th>
+                        <th>స్థితి (Status)</th>
+                        <th>చర్యలు</th>
+                    </tr>
+                </thead>
+                <tbody id="requestTableBody"></tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h3 style="margin-bottom: 15px; color: var(--primary);"><i class="fa fa-users"></i> సభ్యుల జాబితా</h3>
+            <input type="text" id="adminSearch" onkeyup="filterAdminTable()" placeholder="పేరు, ఊరు లేదా ID తో వెతకండి..." style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid #ddd;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Member ID</th>
+                        <th>పేరు</th>
+                        <th>మొబైల్</th>
+                        <th>బ్లడ్</th>
+                        <th>ఊరు / జిల్లా</th>
+                        <th>చర్యలు</th>
+                    </tr>
+                </thead>
+                <tbody id="adminTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: var(--primary);">సభ్యుని వివరాల సవరణ</h3>
+            <input type="hidden" id="editUserId">
+            <div class="edit-grid">
+                <div class="edit-field" style="grid-column: 1 / -1;"><label>Unique ID</label><input type="text" id="eMemberId" readonly style="background:#f9f9f9;"></div>
+                <div class="edit-field"><label>పేరు *</label><input type="text" id="eFname"></div>
+                <div class="edit-field"><label>ఇంటి పేరు</label><input type="text" id="eLname"></div>
+                <div class="edit-field"><label>మొబైల్</label><input type="tel" id="eMobile" readonly style="background:#f9f9f9;"></div>
+                <div class="edit-field"><label>వృత్తి</label><input type="text" id="eJob"></div>
+                <div class="edit-field"><label>బ్లడ్ గ్రూప్</label><select id="eBlood"><option value="A+">A+</option><option value="B+">B+</option><option value="O+">O+</option><option value="AB+">AB+</option><option value="A-">A-</option><option value="B-">B-</option><option value="O-">O-</option><option value="AB-">AB-</option></select></div>
+                <div class="edit-field"><label>ఊరు</label><input type="text" id="eVillage"></div>
+                <div class="edit-field"><label>పిన్ కోడ్</label><input type="number" id="ePin"></div>
+                <div class="edit-field"><label>మండలం</label><input type="text" id="eMandal"></div>
+                <div class="edit-field"><label>జిల్లా</label><input type="text" id="eDist"></div>
+            </div>
+            <div style="margin-top: 25px; display: flex; gap: 15px;">
+                <button class="btn btn-export" style="flex:1;" onclick="saveUserEdit()">Update</button>
+                <button class="btn" style="flex:1; background:#eee;" onclick="closeEditModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyDOp_RBaqwTG7hq4_ZUbm4Clb0_LFXX7qw", authDomain: "veerasaivam-9f4f3.firebaseapp.com", projectId: "veerasaivam-9f4f3", storageBucket: "veerasaivam-9f4f3.firebasestorage.app", messagingSenderId: "69482522926", appId: "1:69482522926:web:c1a2790884eb3c4e05b2bf" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        let allUsers = [];
+
+        // LOGIN LOGIC
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "vs@2026"; // నువ్వు ఇక్కడ మార్చుకోవచ్చు
+
+        window.checkAdminLogin = () => {
+            const u = document.getElementById('adminUser').value;
+            const p = document.getElementById('adminPass').value;
+            if(u === ADMIN_USER && p === ADMIN_PASS) {
+                localStorage.setItem("vsAdminAuth", "true");
+                showDashboard();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        };
+
+        window.adminLogout = () => {
+            localStorage.removeItem("vsAdminAuth");
+            location.reload();
+        };
+
+        function showDashboard() {
+            document.getElementById('adminLoginScreen').style.display = 'none';
+            document.getElementById('adminMainContent').style.display = 'block';
+            startRealtimeSync();
+        }
+
+        window.onload = () => {
+            if(localStorage.getItem("vsAdminAuth") === "true") showDashboard();
+        };
+
+        function startRealtimeSync() {
+            // Notice Sync
+            onSnapshot(doc(db, "app_settings", "notice"), (d) => { if (d.exists()) document.getElementById('newNotice').value = d.data().text; });
+
+            // Requests Sync
+            onSnapshot(query(collection(db, "phone_requests"), orderBy("requestedAt", "desc")), (snap) => {
+                const body = document.getElementById('requestTableBody'); body.innerHTML = "";
+                document.getElementById('reqCount').innerText = snap.size;
+                snap.forEach(d => {
+                    const data = d.data();
+                    body.innerHTML += `<tr>
+                        <td><b>${data.fromName}</b></td>
+                        <td><b>${data.toName}</b></td>
+                        <td>${data.requestedAt?.toDate().toLocaleString() || '-'}</td>
+                        <td><span class="badge ${data.status === 'Pending' ? 'badge-pending' : 'badge-approved'}">${data.status}</span></td>
+                        <td>
+                            ${data.status === 'Pending' ? `<button class="btn btn-export" onclick="updateReqStatus('${d.id}', 'Approved', '${data.fromId}', '${data.toName}')">Approve</button>` : `<i class="fa fa-check-double" style="color:green"></i>`}
+                            <button class="btn-delete" onclick="deleteRequest('${d.id}')"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+            });
+
+            // Members Sync
+            onSnapshot(query(collection(db, "user_registrations"), orderBy("submittedAt", "desc")), (snap) => {
+                const body = document.getElementById('adminTableBody'); body.innerHTML = "";
+                allUsers = []; let today = 0; const nowStr = new Date().toLocaleDateString();
+                snap.forEach(d => {
+                    const data = d.data(); data.id = d.id; allUsers.push(data);
+                    if(data.submittedAt?.toDate().toLocaleDateString() === nowStr) today++;
+                    body.innerHTML += `<tr>
+                        <td><b>${data.memberId}</b></td>
+                        <td>${data.firstName} ${data.lastName || ''}</td>
+                        <td>${data.mobile}</td>
+                        <td style="color:red; font-weight:bold;">${data.bloodGroup || '-'}</td>
+                        <td>${data.village}</td>
+                        <td>
+                            <button class="btn-edit" onclick="openEditModal('${d.id}')"><i class="fa fa-edit"></i></button>
+                            <button class="btn-delete" onclick="deleteUser('${d.id}')"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('totalCount').innerText = snap.size;
+                document.getElementById('todayCount').innerText = today;
+            });
+        }
+
+        // Action Functions
+        window.updateReqStatus = async (reqId, status, fromId, toName) => {
+            await updateDoc(doc(db, "phone_requests", reqId), { status: status });
+            await addDoc(collection(db, "notifications"), {
+                toId: fromId, title: "అనుమతి లభించింది! ✅", message: `అడ్మిన్ ${toName} గారి నంబర్ చూడటానికి అనుమతి ఇచ్చారు.`,
+                type: 'Approved', time: new Date(), read: false
+            });
+        };
+
+        window.updateNotice = async () => {
+            await updateDoc(doc(db, "app_settings", "notice"), { text: document.getElementById('newNotice').value });
+            alert("నోటీసు అప్‌డేట్ అయ్యింది!");
+        };
+
+        window.openEditModal = (id) => {
+            const u = allUsers.find(user => user.id === id);
+            document.getElementById('editUserId').value = id;
+            document.getElementById('eMemberId').value = u.memberId;
+            document.getElementById('eFname').value = u.firstName;
+            document.getElementById('eLname').value = u.lastName;
+            document.getElementById('eMobile').value = u.mobile;
+            document.getElementById('eJob').value = u.profession;
+            document.getElementById('eBlood').value = u.bloodGroup;
+            document.getElementById('eVillage').value = u.village;
+            document.getElementById('ePin').value = u.pincode;
+            document.getElementById('eMandal').value = u.mandal;
+            document.getElementById('eDist').value = u.district;
+            document.getElementById('editModal').style.display = 'flex';
+        };
+
+        window.saveUserEdit = async () => {
+            const id = document.getElementById('editUserId').value;
+            await updateDoc(doc(db, "user_registrations", id), {
+                firstName: document.getElementById('eFname').value, lastName: document.getElementById('eLname').value,
+                profession: document.getElementById('eJob').value, bloodGroup: document.getElementById('eBlood').value,
+                village: document.getElementById('eVillage').value, pincode: document.getElementById('ePin').value,
+                mandal: document.getElementById('eMandal').value, district: document.getElementById('eDist').value
+            });
+            document.getElementById('editModal').style.display = 'none';
+        };
+
+        window.deleteUser = async (id) => { if(confirm("తొలగించాలా?")) await deleteDoc(doc(db, "user_registrations", id)); };
+        window.deleteRequest = async (id) => { if(confirm("తొలగించాలా?")) await deleteDoc(doc(db, "phone_requests", id)); };
+
+        window.exportToExcel = () => {
+            const ws = XLSX.utils.json_to_sheet(allUsers);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Members");
+            XLSX.writeFile(wb, "Veerasaiva_Members.xlsx");
+        };
+
+        window.filterAdminTable = () => {
+            let val = document.getElementById('adminSearch').value.toLowerCase();
+            document.querySelectorAll('#adminTableBody tr').forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? "" : "none");
+        };
+    </script>
+</body>
+</html>
